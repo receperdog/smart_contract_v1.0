@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 contract HotelRoomReservation {
-    // Struct to represent a reservation
+    // Struct to represent a room reservation
     struct Reservation {
         address buyer;
         uint256 roomId;
@@ -13,8 +13,16 @@ contract HotelRoomReservation {
         bool isRefunded;
     }
 
-    // Array to store all reservations
+    // Struct to represent a full holiday plan
+    struct HolidayPlan {
+        string name;
+        uint256[] roomIds;
+        uint256 price;
+    }
+
+    // Arrays to store all reservations and holiday plans
     Reservation[] private reservations;
+    HolidayPlan[] private holidayPlans;
 
     // Mapping to track the owner of each reservation
     mapping(uint256 => address) private reservationToOwner;
@@ -27,24 +35,6 @@ contract HotelRoomReservation {
 
     // Event emitted when a reservation is transferred
     event ReservationTransferred(uint256 reservationId, address previousOwner, address newOwner);
-
-    // Modifier to check if the reservation exists and is owned by the caller
-    modifier onlyReservationOwner(uint256 _reservationId) {
-        require(reservationToOwner[_reservationId] == msg.sender, "Only the reservation owner can call this function");
-        _;
-    }
-
-    // Modifier to check if the reservation is active
-    modifier onlyActiveReservation(uint256 _reservationId) {
-        require(reservations[_reservationId].isActive, "Reservation is not active");
-        _;
-    }
-
-    // Modifier to check if the reservation is not refunded
-    modifier onlyNonRefundedReservation(uint256 _reservationId) {
-        require(!reservations[_reservationId].isRefunded, "Reservation has already been refunded");
-        _;
-    }
 
     // Function to create a new reservation
     function createReservation(
@@ -115,4 +105,39 @@ contract HotelRoomReservation {
 
         emit ReservationTransferred(_reservationId, previousOwner, _newOwner);
     }
+
+    // Function to create a new holiday plan
+    function createHolidayPlan(string memory _name, uint256[] memory _roomIds, uint256 _price) external {
+        require(_roomIds.length > 0, "Holiday plan must include at least one room");
+        require(_price > 0, "Holiday plan price must be greater than zero");
+
+        HolidayPlan memory newHolidayPlan = HolidayPlan({
+            name: _name,
+            roomIds: _roomIds,
+            price: _price
+        });
+
+        holidayPlans.push(newHolidayPlan);
+    }
+
+    // Function to get the details of a holiday plan
+    function getHolidayPlan(uint256 _planId)
+        external
+        view
+        returns (
+            string memory name,
+            uint256[] memory roomIds,
+            uint256 price
+        )
+    {
+        HolidayPlan memory holidayPlan = holidayPlans[_planId];
+        return (holidayPlan.name, holidayPlan.roomIds, holidayPlan.price);
+    }
+
+    // Function to get the number of reservations owned by an address
+    function getReservationCount(address _owner) external view returns (uint256) {
+        return ownerReservationCount[_owner];
+    }
+    
+    // Rest of the contract code...
 }
