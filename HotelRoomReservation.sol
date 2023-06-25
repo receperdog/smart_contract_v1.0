@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 contract HotelRoomReservation {
@@ -57,6 +58,7 @@ contract HotelRoomReservation {
         uint256 _price
     ) external {
         require(_checkInDate < _checkOutDate, "Invalid check-in and check-out dates");
+        require(_price > 0, "Price must be greater than zero");
 
         Reservation memory newReservation = Reservation({
             buyer: msg.sender,
@@ -90,6 +92,8 @@ contract HotelRoomReservation {
             bool isRefunded
         )
     {
+        require(_reservationId < reservations.length, "Invalid reservation ID");
+
         Reservation memory reservation = reservations[_reservationId];
         return (
             reservation.buyer,
@@ -110,6 +114,7 @@ contract HotelRoomReservation {
         onlyNonRefundedReservation(_reservationId)
     {
         require(_newOwner != address(0), "Invalid new owner address");
+        require(_newOwner != msg.sender, "New owner address cannot be the same as the current owner");
 
         address previousOwner = msg.sender;
         reservationToOwner[_reservationId] = _newOwner;
@@ -121,6 +126,7 @@ contract HotelRoomReservation {
 
     // Function to create a new holiday plan
     function createHolidayPlan(string memory _name, uint256[] memory _roomIds, uint256 _price) external {
+        require(bytes(_name).length > 0, "Holiday plan name must not be empty");
         require(_roomIds.length > 0, "Holiday plan must include at least one room");
         require(_price > 0, "Holiday plan price must be greater than zero");
 
@@ -143,6 +149,8 @@ contract HotelRoomReservation {
             uint256 price
         )
     {
+        require(_planId < holidayPlans.length, "Invalid holiday plan ID");
+
         HolidayPlan memory holidayPlan = holidayPlans[_planId];
         return (holidayPlan.name, holidayPlan.roomIds, holidayPlan.price);
     }
