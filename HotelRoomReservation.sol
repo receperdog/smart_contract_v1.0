@@ -36,7 +36,21 @@ contract HotelRoomReservation {
     // Event emitted when a reservation is transferred
     event ReservationTransferred(uint256 reservationId, address previousOwner, address newOwner);
 
-    // Function to create a new reservation
+    modifier onlyReservationOwner(uint256 _reservationId) {
+        require(reservationToOwner[_reservationId] == msg.sender, "Only the reservation owner can call this function");
+        _;
+    }
+
+    modifier onlyActiveReservation(uint256 _reservationId) {
+        require(reservations[_reservationId].isActive, "Reservation is not active");
+        _;
+    }
+
+    modifier onlyNonRefundedReservation(uint256 _reservationId) {
+        require(!reservations[_reservationId].isRefunded, "Reservation has already been refunded");
+        _;
+    }
+
     function createReservation(
         uint256 _roomId,
         uint256 _checkInDate,
@@ -138,6 +152,4 @@ contract HotelRoomReservation {
     function getReservationCount(address _owner) external view returns (uint256) {
         return ownerReservationCount[_owner];
     }
-    
-    // Rest of the contract code...
 }
